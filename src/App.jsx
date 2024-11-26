@@ -1,51 +1,70 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
+import {useState, useEffect} from "react";
+import {invoke} from "@tauri-apps/api/core";
 import "./App.css";
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+    const [data, setData] = useState([]);
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
+    useEffect(() => {
+        async function get_logs() {
+            invoke("get_logs").then(data => setData(data));
+        }
 
-  return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
+        get_logs();
+    }, []);
 
-      <div className="row">
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
+    return (
+        <>
+            {
+                data.map(x => <LinePreview {...x}/>)
+            }
+        </>
+    );
+}
 
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-    </main>
-  );
+const LineNumber = ({line_no}) => {
+    return (
+        <div className="loglineno">
+            <p>{line_no}</p>
+        </div>
+    )
+}
+
+const DateTime = ({time}) => {
+    return (
+        <div className="logdatetime">
+            <p>{time}</p>
+        </div>
+    )
+}
+
+const LogLevel = ({val}) => {
+    return (
+        <div className="loglevel" >
+            <p>{val}</p>
+        </div>
+    )
+}
+
+const LogMessage = ({val}) => {
+    return (
+        <div className="logmsg">
+            <p>{val}</p>
+        </div>
+    )
+}
+
+const LinePreview = ({line_no, datetime, log_level, message}) => {
+    return (
+        <>
+            <div className="log">
+                <LineNumber line_no={line_no}/>
+                <DateTime time={datetime}/>
+                <LogLevel val={log_level}/>
+                <LogMessage val={message}/>
+            </div>
+        </>
+    )
 }
 
 export default App;
